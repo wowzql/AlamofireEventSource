@@ -41,7 +41,7 @@ extension Session {
         }
     }
     
-    public func eventSourceRequest<Parameters: Encodable>(_ convertible: URLConvertible,
+    public func eventSourceRequest(_ convertible: URLConvertible,
                       method: HTTPMethod = .get,
                       parameters: Parameters? = nil,
                       encoding: ParameterEncoding = URLEncoding.default,
@@ -50,18 +50,15 @@ extension Session {
                       requestModifier: RequestModifier? = nil,
                       lastEventID: String? = nil) -> DataStreamRequest {
         
-        let convertible = RequestEncodableConvertible(url: convertible,
-                        method: method,
-                        parameters: parameters,
-                        encoder: URLEncodedFormParameterEncoder.default,
-                        headers: headers,
-                        requestModifier: requestModifier)
-    
-        
-        return streamRequest(convertible,
-                             automaticallyCancelOnStreamError: false,
-                             interceptor: interceptor)
+        let convertible = RequestConvertible(url: convertible,
+                                             method: method,
+                                             parameters: parameters,
+                                             encoding: encoding,
+                                             headers: headers,
+                                             requestModifier: requestModifier)
 
+        return streamRequest(convertible, automaticallyCancelOnStreamError: false, interceptor: interceptor)
+        
     }
 }
 
