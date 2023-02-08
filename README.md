@@ -10,7 +10,6 @@ let request = Session.default.eventSourceRequest(endpoint,method: .post, paramet
     switch eventSource.event {
     case .message(let message):
         print("Event source received message:", message)
-        message.data
     case .complete(let completion):
         print("Event source completed:", completion)
     }
