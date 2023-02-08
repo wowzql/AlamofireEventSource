@@ -25,25 +25,43 @@ extension Session {
             return try encoding.encode(request, with: parameters)
         }
     }
-    
-    public func eventSourceRequest(_ convertible: URLConvertible, method: HTTPMethod = .get, parameters: Parameters? = nil, headers: HTTPHeaders? = nil, encoding: ParameterEncoding = URLEncoding.default , requestModifier: RequestModifier? = nil, interceptor: RequestInterceptor? = nil, lastEventID: String? = nil) -> DataStreamRequest {
-        
-        let convertible = RequestConvertible(url: convertible,
-                                             method: method,
-                                             parameters: parameters,
-                                             encoding: encoding,
-                                             headers: headers,
-                                             requestModifier: requestModifier)
-        
-        return streamRequest(convertible as! URLConvertible, interceptor: interceptor) { request in
-            request.timeoutInterval = TimeInterval(Int32.max)
-            request.headers.add(name: "Accept", value: "text/event-stream")
-            request.headers.add(name: "Cache-Control", value: "no-cache")
-            
-            if let lastEventID = lastEventID {
-                request.headers.add(name: "Last-Event-ID", value: lastEventID)
-            }
+    struct RequestEncodableConvertible<Parameters: Encodable>: URLRequestConvertible {
+        let url: URLConvertible
+        let method: HTTPMethod
+        let parameters: Parameters?
+        let encoder: ParameterEncoder
+        let headers: HTTPHeaders?
+        let requestModifier: RequestModifier?
+
+        func asURLRequest() throws -> URLRequest {
+            var request = try URLRequest(url: url, method: method, headers: headers)
+            try requestModifier?(&request)
+
+            return try parameters.map { try encoder.encode($0, into: request) } ?? request
         }
+    }
+    
+    public func eventSourceRequest<Parameters: Encodable>(_ convertible: URLConvertible,
+                      method: HTTPMethod = .get,
+                      parameters: Parameters? = nil,
+                      encoding: ParameterEncoding = URLEncoding.default,
+                      headers: HTTPHeaders? = nil,
+                      interceptor: RequestInterceptor? = nil,
+                      requestModifier: RequestModifier? = nil,
+                      lastEventID: String? = nil) -> DataStreamRequest {
+        
+        let convertible = RequestEncodableConvertible(url: convertible,
+                        method: method,
+                        parameters: parameters,
+                        encoder: URLEncodedFormParameterEncoder.default,
+                        headers: headers,
+                        requestModifier: requestModifier)
+    
+        
+        return streamRequest(convertible,
+                             automaticallyCancelOnStreamError: false,
+                             interceptor: interceptor)
+
     }
 }
 
