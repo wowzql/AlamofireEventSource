@@ -2,38 +2,35 @@
 
 Alamofire plugin for Server-Sent Events (SSE).
 
-## Usage
+## Usage | 使用
 
 ```swift
-import Alamofire
-import AlamofireEventSource
-
-let endpoint = URL(string: "http://localhost/sse")!
-let request = Session.default.eventSourceRequest(endpoint, lastEventID: "0").responseEventSource { eventSource in
+let endpoint = URL(string: "https://api.openai.com/v1/completions")!
+let request = Session.default.eventSourceRequest(endpoint,method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers,  lastEventID: "0").responseEventSource { eventSource in
     switch eventSource.event {
     case .message(let message):
         print("Event source received message:", message)
+        message.data
     case .complete(let completion):
         print("Event source completed:", completion)
     }
 }
 ```
 
-## Installation
+## Installation | 安装
 
-Ursus can be installed using Cocoapods by adding the following line to your podfile:
+Can be installed using SPM
 
 ```ruby
-`pod 'AlamofireEventSource', '~> 1.2'`
+dependencies: [
+    .package(url: "https://github.com/wowzql/AlamofireEventSource.git", .upToNextMajor(from: "1.1.0"))
+]
 ```
 
-I can probably help set up Carthage or Swift Package Manager support if you need it.
 
 ## Todo list
 
-Things that would make this codebase nicer:
-
-- [ ] Add support for Combine publishers
+Nothing!!
 
 ## Reference
 
